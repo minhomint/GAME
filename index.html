@@ -6,43 +6,29 @@
     <title>요한계시록 암송</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Malgun Gothic', sans-serif; 
-            line-height: 1.6;
-            padding: 20px;
-            max-width: 900px;
-            margin: 0 auto;
-            background: #f5f5f5;
-        }
+        body { font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; padding: 20px; max-width: 900px; margin: 0 auto; background: #f5f5f5; }
         .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h1 { text-align: center; margin-bottom: 30px; color: #333; }
-        
         .navigation { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #eee; }
         .nav-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
         .nav-row label { font-weight: bold; min-width: 50px; }
         .nav-row select { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; }
-        
         .verse-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; }
         .verse-btn { padding: 8px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; font-size: 13px; }
         .verse-btn:hover { background: #f0f0f0; }
         .verse-btn.active { background: #4a90e2; color: white; font-weight: bold; }
-        
         .verse-display { background: #f9f9f9; padding: 20px; border-left: 4px solid #4a90e2; margin: 20px 0; }
         .verse-reference { font-weight: bold; color: #555; margin-bottom: 10px; font-size: 16px; }
         .verse-text { font-size: 16px; line-height: 1.8; }
-        
         .mode-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .mode-tabs button { flex: 1; padding: 12px; border: none; background: #e0e0e0; cursor: pointer; font-size: 15px; border-radius: 4px; font-weight: bold; }
         .mode-tabs button.active { background: #4a90e2; color: white; }
-        
         .input-area textarea { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 4px; font-size: 15px; min-height: 100px; font-family: inherit; }
         .check-button { width: 100%; padding: 12px; background: #4caf50; color: white; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; margin-top: 10px; font-weight: bold; }
         .check-button:hover { background: #45a049; }
-        
         .result { padding: 15px; margin-top: 15px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 16px; }
         .result.correct { background: #d4edda; color: #155724; }
         .result.incorrect { background: #f8d7da; color: #721c24; }
-        
         .puzzle-area { margin-top: 20px; }
         .selected-words { min-height: 120px; padding: 15px; background: #f0f7ff; border: 2px dashed #4a90e2; border-radius: 4px; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
         .selected-words.empty { color: #999; justify-content: center; align-items: center; }
@@ -51,52 +37,36 @@
         .word-btn:hover { background: #f0f0f0; transform: translateY(-2px); }
         .word-btn.selected { background: #4a90e2; color: white; border-color: #4a90e2; }
         .word-btn.wrong { background: #ff6b6b; color: white; border-color: #ff6b6b; animation: shake 0.4s; }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-        
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
         .puzzle-controls { display: flex; gap: 10px; margin-top: 15px; }
         .puzzle-controls button { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; font-weight: bold; }
         .puzzle-controls button:hover { background: #f0f0f0; }
-        
         .progress { margin-top: 15px; font-size: 14px; color: #666; text-align: center; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📖 요한계시록 암송</h1>
-        
         <div class="navigation">
             <div class="nav-row">
                 <label>장 선택</label>
-                <select id="chapterSelect" onchange="changeChapter()">
-                    <option value="1">1장</option>
-                    <option value="2">2장</option>
-                    <option value="3">3장</option>
-                </select>
+                <select id="chapterSelect" onchange="changeChapter()"></select>
             </div>
             <div class="verse-grid" id="verseGrid"></div>
         </div>
-
         <div class="verse-display">
             <div class="verse-reference" id="verseReference"></div>
             <div class="verse-text" id="verseText"></div>
         </div>
-
         <div class="mode-tabs">
             <button class="active" onclick="setMode('input')">직접 입력</button>
             <button onclick="setMode('puzzle')">단어 퍼즐</button>
         </div>
-
         <div id="inputMode" class="input-area">
             <textarea id="userInput" placeholder="구절을 입력하세요..."></textarea>
             <button class="check-button" onclick="checkInput()">확인</button>
             <div id="inputResult"></div>
         </div>
-
         <div id="puzzleMode" class="puzzle-area" style="display:none;">
             <div class="selected-words" id="selectedWords"></div>
             <div class="word-buttons" id="wordButtons"></div>
@@ -107,16 +77,15 @@
             <div id="puzzleResult"></div>
         </div>
     </div>
-
     <script>
         const verses = {
             1: {
-                1: "예수 그리스도의 계시라 이는 하나님이 그에게 주사 반드시 속히 될 일을 그 종들에게 보이시려고 그 천사를 그 종 요한에게 보내어 지시하신 것이라",
-                2: "요한은 하나님의 말씀과 예수 그리스도의 증거 곧 자기의 본 것을 다 증거하였느니라",
-                3: "이 예언의 말씀을 읽는 자와 듣는 자들과 그 가운데 기록한 것을 지키는 자들이 복이 있나니 때가 가까움이라",
-                4: "요한은 아시아에 있는 일곱 교회에 편지하노니 이제도 계시고 전에도 계시고 장차 오실 이와 그 보좌 앞에 일곱 영과",
-                5: "또 충성된 증인으로 죽은 자들 가운데서 먼저 나시고 땅의 임금들의 머리가 되신 예수 그리스도로 말미암아 은혜와 평강이 너희에게 있기를 원하노라 우리를 사랑하사 그의 피로 우리 죄에서 우리를 해방하시고",
-                6: "그 아버지 하나님을 위하여 우리를 나라와 제사장으로 삼으신 그에게 영광과 능력이 세세토록 있기를 원하노라 아멘",
+                1: "예수 그리스도의 계시라, 이는 하나님이, 그에게 주사, 반드시 속히 될 일을, 그 종들에게 보이시려고, 그 천사를, 그 종 요한에게 보내어, 지시하신 것이라",
+                2: "요한은, 하나님의 말씀과, 예수 그리스도의 증거, 곧 자기의 본 것을, 다 증거하였느니라",
+                3: "이 예언의 말씀을, 읽는 자와, 듣는 자들과, 그 가운데 기록한 것을, 지키는 자들이, 복이 있나니, 때가 가까움이라",
+                4: "요한은, 아시아에 있는, 일곱 교회에 편지하노니, 이제도 계시고, 전에도 계시고, 장차 오실 이와, 그 보좌 앞에, 일곱 영과",
+                5: "또 충성된 증인으로, 죽은 자들 가운데서, 먼저 나시고, 땅의 임금들의, 머리가 되신, 예수 그리스도로 말미암아, 은혜와 평강이, 너희에게 있기를 원하노라, 우리를 사랑하사, 그의 피로, 우리 죄에서, 우리를 해방하시고",
+                6: "그 아버지 하나님을 위하여, 우리를, 나라와 제사장으로 삼으신 그에게 영광과 능력이 세세토록 있기를 원하노라 아멘",
                 7: "볼지어다 구름을 타고 오시리라 각인의 눈이 그를 보겠고 그를 찌른 자들도 볼 터이요 땅에 있는 모든 족속이 그를 인하여 애곡하리니 그러하리라 아멘",
                 8: "주 하나님이 가라사대 나는 알파와 오메가라 이제도 있고 전에도 있었고 장차 올 자요 전능한 자라 하시더라",
                 9: "나 요한은 너희 형제요 예수의 환난과 나라와 참음에 동참하는 자라 하나님의 말씀과 예수의 증거를 인하여 밧모라 하는 섬에 있었더니",
@@ -189,6 +158,7 @@
             }
         };
 
+
         let currentChapter = 1;
         let currentVerse = 1;
         let currentMode = 'input';
@@ -197,6 +167,10 @@
         let correctAnswer = [];
 
         function init() {
+            const select = document.getElementById('chapterSelect');
+            for (let i = 1; i <= 22; i++) {
+                select.innerHTML += `<option value="${i}">${i}장</option>`;
+            }
             updateVerseGrid();
             displayVerse();
         }
@@ -212,7 +186,6 @@
             const grid = document.getElementById('verseGrid');
             const maxVerse = Object.keys(verses[currentChapter] || {}).length;
             grid.innerHTML = '';
-            
             for (let i = 1; i <= maxVerse; i++) {
                 const btn = document.createElement('button');
                 btn.className = 'verse-btn' + (i === currentVerse ? ' active' : '');
@@ -230,24 +203,23 @@
 
         function displayVerse() {
             const verse = verses[currentChapter]?.[currentVerse];
-            if (!verse) return;
-            
+            if (!verse) {
+                document.getElementById('verseText').textContent = '구절을 추가해주세요.';
+                return;
+            }
+            const cleanVerse = verse.replace(/,/g, '');
             document.getElementById('verseReference').textContent = `요한계시록 ${currentChapter}장 ${currentVerse}절`;
-            document.getElementById('verseText').textContent = verse;
+            document.getElementById('verseText').textContent = cleanVerse;
             document.getElementById('userInput').value = '';
             document.getElementById('inputResult').innerHTML = '';
             document.getElementById('puzzleResult').innerHTML = '';
-            
-            if (currentMode === 'puzzle') {
-                initPuzzle();
-            }
+            if (currentMode === 'puzzle') initPuzzle();
         }
 
         function setMode(mode) {
             currentMode = mode;
             document.querySelectorAll('.mode-tabs button').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            
             if (mode === 'input') {
                 document.getElementById('inputMode').style.display = 'block';
                 document.getElementById('puzzleMode').style.display = 'none';
@@ -259,10 +231,9 @@
         }
 
         function checkInput() {
-            const verse = verses[currentChapter][currentVerse];
+            const verse = verses[currentChapter][currentVerse].replace(/,/g, '');
             const userInput = document.getElementById('userInput').value.trim();
             const result = document.getElementById('inputResult');
-            
             if (userInput === verse) {
                 result.className = 'result correct';
                 result.textContent = '✓ 정답입니다!';
@@ -272,27 +243,13 @@
             }
         }
 
-        function splitIntoPieces(text) {
-            const words = text.split(' ');
-            const targetPieces = Math.min(10, Math.max(9, Math.ceil(words.length / 3)));
-            const wordsPerPiece = Math.ceil(words.length / targetPieces);
-            
-            const pieces = [];
-            for (let i = 0; i < words.length; i += wordsPerPiece) {
-                pieces.push(words.slice(i, i + wordsPerPiece).join(' '));
-            }
-            return pieces;
-        }
-
         function initPuzzle() {
             const verse = verses[currentChapter][currentVerse];
             if (!verse) return;
-            
-            correctAnswer = splitIntoPieces(verse);
+            correctAnswer = verse.split(',').map(s => s.trim());
             puzzlePieces = correctAnswer.map((piece, idx) => ({ piece, originalIdx: idx }))
                 .sort(() => Math.random() - 0.5);
             selectedPieces = [];
-            
             renderPuzzle();
         }
 
@@ -300,7 +257,6 @@
             const selectedDiv = document.getElementById('selectedWords');
             const buttonsDiv = document.getElementById('wordButtons');
             const progress = document.getElementById('progress');
-            
             if (selectedPieces.length === 0) {
                 selectedDiv.innerHTML = '<div>단어 조각을 순서대로 선택하세요</div>';
                 selectedDiv.classList.add('empty');
@@ -310,23 +266,19 @@
                     `<button class="word-btn selected" onclick="unselectPiece(${pos})">${item.piece}</button>`
                 ).join('');
             }
-            
             buttonsDiv.innerHTML = puzzlePieces.map((item, idx) => 
                 `<button class="word-btn" onclick="selectPiece(${idx})" id="piece${idx}">${item.piece}</button>`
             ).join('');
-            
             progress.textContent = `진행: ${selectedPieces.length} / ${correctAnswer.length}`;
         }
 
         function selectPiece(idx) {
             const piece = puzzlePieces[idx];
             const expectedIdx = selectedPieces.length;
-            
             if (piece.originalIdx === expectedIdx) {
                 selectedPieces.push(piece);
                 puzzlePieces.splice(idx, 1);
                 renderPuzzle();
-                
                 if (selectedPieces.length === correctAnswer.length) {
                     setTimeout(() => {
                         document.getElementById('puzzleResult').className = 'result correct';
@@ -358,3 +310,6 @@
     </script>
 </body>
 </html>
+
+   
+           
