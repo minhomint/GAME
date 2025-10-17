@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>요한계시록 암송</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Malgun Gothic', sans-serif; 
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { text-align: center; margin-bottom: 30px; color: #333; }
+        .verse-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; }
+        .verse-nav button { padding: 8px 16px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; }
+        .verse-nav button:hover { background: #f0f0f0; }
+        .verse-nav button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .verse-info { font-weight: bold; font-size: 18px; color: #555; }
+        .verse-text { background: #f9f9f9; padding: 20px; border-left: 4px solid #4a90e2; margin-bottom: 20px; font-size: 16px; line-height: 1.8; }
+        .mode-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .mode-tabs button { flex: 1; padding: 12px; border: none; background: #e0e0e0; cursor: pointer; font-size: 15px; border-radius: 4px; }
+        .mode-tabs button.active { background: #4a90e2; color: white; font-weight: bold; }
+        .input-area { margin-bottom: 20px; }
+        .input-area textarea { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 4px; font-size: 15px; min-height: 100px; font-family: inherit; }
+        .check-button { width: 100%; padding: 12px; background: #4caf50; color: white; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; margin-top: 10px; }
+        .check-button:hover { background: #45a049; }
+        .result { padding: 15px; margin-top: 15px; border-radius: 4px; text-align: center; font-weight: bold; }
+        .result.correct { background: #d4edda; color: #155724; }
+        .result.incorrect { background: #f8d7da; color: #721c24; }
+        .puzzle-area { margin-top: 20px; }
+        .selected-words { min-height: 100px; padding: 15px; background: #f0f7ff; border: 2px dashed #4a90e2; border-radius: 4px; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+        .selected-words.empty { color: #999; justify-content: center; align-items: center; }
+        .word-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+        .word-btn { padding: 8px 16px; background: white; border: 1px solid #ddd; cursor: pointer; border-radius: 4px; font-size: 14px; }
+        .word-btn:hover { background: #f0f0f0; }
+        .word-btn.selected { background: #4a90e2; color: white; border-color: #4a90e2; }
+        .puzzle-controls { display: flex; gap: 10px; margin-top: 15px; }
+        .puzzle-controls button { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; }
+        .puzzle-controls button:hover { background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📖 요한계시록 암송</h1>
+        
+        <div class="verse-nav">
+            <button onclick="prevVerse()">◀ 이전</button>
+            <div class="verse-info" id="verseInfo"></div>
+            <button onclick="nextVerse()">다음 ▶</button>
+        </div>
+
+        <div class="verse-text" id="verseText"></div>
+
+        <div class="mode-tabs">
+            <button class="active" onclick="setMode('input')">직접 입력</button>
+            <button onclick="setMode('puzzle')">단어 퍼즐</button>
+        </div>
+
+        <div id="inputMode" class="input-area">
+            <textarea id="userInput" placeholder="구절을 입력하세요..."></textarea>
+            <button class="check-button" onclick="checkInput()">확인</button>
+            <div id="inputResult"></div>
+        </div>
+
+        <div id="puzzleMode" class="puzzle-area" style="display:none;">
+            <div class="selected-words" id="selectedWords"></div>
+            <div class="word-buttons" id="wordButtons"></div>
+            <div class="puzzle-controls">
+                <button onclick="checkPuzzle()">정답 확인</button>
+                <button onclick="resetPuzzle()">다시 시작</button>
+            </div>
+            <div id="puzzleResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // 요한계시록 전체 구절 (개역한글) - 예시로 1-3장만 포함
+        const verses = {
+            1: {
+                1: "예수 그리스도의 계시라 이는 하나님이 그에게 주사 반드시 속히 될 일을 그 종들에게 보이시려고 그 천사를 그 종 요한에게 보내어 지시하신 것이라",
+                2: "요한은 하나님의 말씀과 예수 그리스도의 증거 곧 자기의 본 것을 다 증거하였느니라",
+                3: "이 예언의 말씀을 읽는 자와 듣는 자들과 그 가운데 기록한 것을 지키는 자들이 복이 있나니 때가 가까움이라",
+                4: "요한은 아시아에 있는 일곱 교회에 편지하노니 이제도 계시고 전에도 계시고 장차 오실 이와 그 보좌 앞에 일곱 영과",
+                5: "또 충성된 증인으로 죽은 자들 가운데서 먼저 나시고 땅의 임금들의 머리가 되신 예수 그리스도로 말미암아 은혜와 평강이 너희에게 있기를 원하노라 우리를 사랑하사 그의 피로 우리 죄에서 우리를 해방하시고",
+                6: "그 아버지 하나님을 위하여 우리를 나라와 제사장으로 삼으신 그에게 영광과 능력이 세세토록 있기를 원하노라 아멘",
+                7: "볼지어다 구름을 타고 오시리라 각인의 눈이 그를 보겠고 그를 찌른 자들도 볼 터이요 땅에 있는 모든 족속이 그를 인하여 애곡하리니 그러하리라 아멘",
+                8: "주 하나님이 가라사대 나는 알파와 오메가라 이제도 있고 전에도 있었고 장차 올 자요 전능한 자라 하시더라",
+                9: "나 요한은 너희 형제요 예수의 환난과 나라와 참음에 동참하는 자라 하나님의 말씀과 예수의 증거를 인하여 밧모라 하는 섬에 있었더니",
+                10: "주의 날에 내가 성령에 감동하여 내 뒤에서 나는 나팔 소리 같은 큰 음성을 들으니",
+                11: "가로되 너 보는 것을 책에 써서 에베소, 서머나, 버가모, 두아디라, 사데, 빌라델비아, 라오디게아 일곱 교회에 보내라 하시기로",
+                12: "몸을 돌이켜 나더러 말한 음성을 알아보려고 하여 돌이킬 때에 일곱 금 촛대를 보았는데",
+                13: "촛대 사이에 인자 같은 이가 발에 끌리는 옷을 입고 가슴에 금띠를 띠고",
+                14: "그 머리와 털의 희기가 흰 양털 같고 눈 같으며 그의 눈은 불꽃 같고",
+                15: "그의 발은 풀무에 단련한 빛난 주석 같고 그의 음성은 많은 물소리와 같으며",
+                16: "그 오른손에 일곱 별이 있고 그 입에서 좌우에 날선 검이 나오고 그 얼굴은 해가 힘있게 비취는 것 같더라",
+                17: "내가 볼 때에 그 발 앞에 엎드러져 죽은 자 같이 되매 그가 오른손을 내게 얹고 가라사대 두려워 말라 나는 처음이요 나중이니",
+                18: "곧 산 자라 내가 전에 죽었었노라 볼지어다 이제 세세토록 살아 있어 사망과 음부의 열쇠를 가졌노니",
+                19: "그러므로 네 본 것과 이제 있는 일과 장차 될 일을 기록하라",
+                20: "네 본 것은 내 오른손에 일곱 별의 비밀과 일곱 금 촛대라 일곱 별은 일곱 교회의 사자요 일곱 촛대는 일곱 교회니라"
+            },
+            2: {
+                1: "에베소 교회의 사자에게 편지하기를 오른손에 일곱 별을 붙잡고 일곱 금 촛대 사이에 다니시는 이가 가라사대",
+                2: "내가 네 행위와 수고와 네 인내를 알고 또 악한 자들을 용납지 아니한 것과 자칭 사도라 하되 아닌 자들을 시험하여 그 거짓된 것을 네가 드러낸 것과",
+                3: "또 네가 참고 내 이름을 위하여 견디고 게으르지 아니한 것을 아노라",
+                4: "그러나 너를 책망할 것이 있나니 너의 처음 사랑을 버렸느니라",
+                5: "그러므로 어디서 떨어진 것을 생각하고 회개하여 처음 행위를 가지라 만일 그리하지 아니하고 회개치 아니하면 내가 네게 임하여 네 촛대를 그 자리에서 옮기리라",
+                6: "오직 네게 이것이 있으니 네가 니골라당의 행위를 미워하는도다 나도 이것을 미워하노라",
+                7: "귀 있는 자는 성령이 교회들에게 하시는 말씀을 들을지어다 이기는 그에게는 내가 하나님의 낙원에 있는 생명나무의 과실을 주어 먹게 하리라",
+                8: "서머나 교회의 사자에게 편지하기를 처음이요 나중이요 죽었다가 살아나신 이가 가라사대",
+                9: "내가 네 환난과 궁핍을 아노니 실상은 네가 부요한 자니라 자칭 유대인이라 하는 자들의 훼방도 아노니 실상은 유대인이 아니요 사단의 회라",
+                10: "너는 장차 받을 고난을 두려워 말라 볼지어다 마귀가 장차 너희 가운데서 몇 사람을 옥에 던져 시험을 받게 하리니 너희가 십 일 동안 환난을 받으리라 네가 죽도록 충성하라 그리하면 내가 생명의 면류관을 네게 주리라",
+                11: "귀 있는 자는 성령이 교회들에게 하시는 말씀을 들을지어다 이기는 자는 둘째 사망의 해를 받지 아니하리라",
+                12: "버가모 교회의 사자에게 편지하기를 좌우에 날선 검을 가진 이가 가라사대",
+                13: "네가 어디 사는 것을 내가 아노니 거기는 사단의 위가 있는 데라 네가 내 이름을 굳게 잡아서 내 충성된 증인 안디바가 너희 가운데 곧 사단의 거하는 곳에서 죽임을 당할 때에도 나를 믿는 믿음을 저버리지 아니하였도다",
+                14: "그러나 네게 두어 가지 책망할 것이 있나니 거기 네게 발람의 교훈을 지키는 자들이 있도다 발람이 발락을 가르쳐 이스라엘 앞에 올무를 놓아 우상의 제물을 먹게 하였고 또 행음하게 하였느니라",
+                15: "이와 같이 네게도 니골라당의 교훈을 지키는 자들이 있도다",
+                16: "그러므로 회개하라 그리하지 아니하면 내가 네게 속히 임하여 내 입의 검으로 그들과 싸우리라",
+                17: "귀 있는 자는 성령이 교회들에게 하시는 말씀을 들을지어다 이기는 그에게는 내가 감추었던 만나를 주고 또 흰 돌을 줄 터인데 그 돌 위에 새 이름을 기록한 것이 있나니 받는 자밖에는 그 이름을 알 사람이 없느니라",
+                18: "두아디라 교회의 사자에게 편지하기를 그 눈이 불꽃 같고 그 발이 빛난 주석과 같은 하나님의 아들이 가라사대",
+                19: "내가 네 사업과 사랑과 믿음과 섬김과 인내를 아노니 네 나중 행위가 처음 것보다 많도다",
+                20: "그러나 네게 책망할 일이 있노라 자칭 선지자라 하는 여자 이세벨을 네가 용납함이니 그가 내 종들을 가르쳐 꾀어 행음하게 하고 우상의 제물을 먹게 하는도다",
+                21: "또 내가 그에게 회개할 기회를 주었으되 그 음행을 회개하고자 아니하는도다",
+                22: "볼지어다 내가 그를 침상에 던질 터이요 또 그로 더불어 간음하는 자들도 만일 그의 행위를 회개치 아니하면 큰 환난 가운데 던지고",
+                23: "또 내가 사망으로 그의 자녀를 죽이리니 모든 교회가 나는 사람의 뜻과 마음을 살피는 자인 줄 알지라 내가 너희 각 사람의 행위대로 갚아 주리라",
+                24: "두아디라에 남아 있어 이 교훈을 받지 아니하고 소위 사단의 깊은 것을 알지 못하는 너희에게 말하노니 다른 짐으로 너희에게 지울 것이 없노라",
+                25: "다만 너희에게 있는 것을 내가 올 때까지 굳게 잡으라",
+                26: "이기는 자와 끝까지 내 일을 지키는 그에게 만국을 다스리는 권세를 주리니",
+                27: "그가 철장을 가지고 저희를 다스려 질그릇 깨뜨리는 것과 같이 하리라 나도 내 아버지께 받은 것이 그러하니라",
+                28: "내가 또 그에게 새벽별을 주리라",
+                29: "귀 있는 자는 성령이 교회들에게 하시는 말씀을 들을지어다"
+            },
+            3: {
+                1: "사데 교회의 사자에게 편지하기를 하나님의 일곱 영과 일곱 별을 가진 이가 가라사대 내가 네 행위를 아노니 네가 살았다 하는 이름은 가졌으나 죽은 자로다",
+                2: "너는 일깨워 그 남은 바 죽게 된 것을 굳게 하라 내 하나님 앞에 네 행위의 온전한 것을 찾지 못하였노니",
+                3: "그러므로 네가 어떻게 받았으며 어떻게 들었는지 생각하고 지키어 회개하라 만일 일깨지 아니하면 내가 도적같이 이르리니 어느 시에 네게 임할는지 네가 알지 못하리라",
+                4: "그러나 사데에 그 옷을 더럽히지 아니한 자 몇 명이 네게 있어 흰 옷을 입고 나와 함께 다니리니 그들은 합당한 자인 연고라",
+                5: "이기는 자는 이와 같이 흰 옷을 입을 것이요 내가 그 이름을 생명책에서 반드시 흐리지 아니하고 그 이름을 내 아버지 앞과 그 천사들 앞에서 시인하리라",
+                6: "귀 있는 자는 성령이 교회들에게 하시는 말씀을 들을지어다",
+                7: "빌라델비아 교회의 사자에게 편지하기를 거룩하고 진실하사 다윗의 열쇠를 가지신 이 곧 열면 닫을 사람이 없고 닫으면 열 사람이 없는 그이가 가라사대",
+                8: "볼지어다 내가 네 앞에 열린 문을 두었으되 능히 닫을 사람이 없으리라 내가 네 행위를 아노니 네가 적은 능력을 가지고도 내 말을 지키며 내 이름을 배반치 아니하였도다",
+                9: "보라 사단의 회 곧 자칭 유대인이라 하나 그렇지 않고 거짓말 하는 자들 중에서 몇을 네게 주어 저희로 와서 네 발 앞에 절하게 하고 내가 너를 사랑하는 줄을 알게 하리라",
+                10: "네가 나의 인내의 말씀을 지켰은즉 내가 또한 너를 지켜 시험의 때를 면하게 하리니 이는 장차 온 세상에 임하여 땅에 거하는 자들을 시험할 때라",
+                11: "내가 속히 임하리니 네가 가진 것을 굳게 잡아 아무나 네 면류관을 빼앗지 못하게 하라",
+                12: "이기는 자는 내 하나님 성전에 기둥이 되게 하리니 그가 결코 다시 나가지 아니하리라 내가 하나님의 이름과 하나님의 성 곧 하늘에서 내 하나님께로부터 내려오는 새 예루살렘의 이름과 나의 새 이름을 그이 위에 기록하리라",
+                13: "귀 있는 자는 성령이 교회들에게 하시는 말씀을 들을지어다",
+                14: "라오디게아 교회의 사자에게 편지하기를 아멘이시요 충성되고 참된 증인이시요 하나님의 창조의 근본이신 이가 가라사대",
+                15: "내가 네 행위를 아노니 네가 차지도 아니하고 더웁지도 아니하도다 네가 차든지 더웁든지 하기를 원하노라",
+                16: "네가 이같이 미지근하여 더웁지도 아니하고 차지도 아니하니 내 입에서 너를 토하여 내치리라",
+                17: "네가 말하기를 나는 부자라 부요하여 부족한 것이 없다 하나 네 곤고한 것과 가련한 것과 가난한 것과 눈먼 것과 벌거벗은 것을 알지 못하도다",
+                18: "내가 너를 권하노니 내게서 불로 연단한 금을 사서 부요하게 하고 흰 옷을 사서 입어 벌거벗은 수치를 보이지 않게 하고 안약을 사서 눈에 발라 보게 하라",
+                19: "무릇 내가 사랑하는 자를 책망하여 징계하노니 그러므로 네가 열심을 내라 회개하라",
+                20: "볼지어다 내가 문 밖에 서서 두드리노니 누구든지 내 음성을 듣고 문을 열면 내가 그에게로 들어가 그로 더불어 먹고 그는 나로 더불어 먹으리라",
+                21: "이기는 그에게는 내가 내 보좌에 함께 앉게 하여 주기를 내가 이기고 아버지 보좌에 함께 앉은 것과 같이 하리라",
+                22: "귀 있는 자는 성령이 교회들에게 하시는 말씀을 들을지어다"
+            }
+            // 나머지 4-22장은 사용자가 추가 가능
+        };
+
+        let currentChapter = 1;
+        let currentVerse = 1;
+        let currentMode = 'input';
+        let shuffledWords = [];
+        let selectedWordIndices = [];
+
+        function init() {
+            displayVerse();
+        }
+
+        function displayVerse() {
+            const verse = verses[currentChapter]?.[currentVerse];
+            if (!verse) {
+                document.getElementById('verseText').textContent = '구절이 없습니다. 성경 데이터를 추가해주세요.';
+                return;
+            }
+            
+            document.getElementById('verseInfo').textContent = `${currentChapter}장 ${currentVerse}절`;
+            document.getElementById('verseText').textContent = verse;
+            document.getElementById('userInput').value = '';
+            document.getElementById('inputResult').innerHTML = '';
+            document.getElementById('puzzleResult').innerHTML = '';
+            
+            if (currentMode === 'puzzle') {
+                initPuzzle();
+            }
+        }
+
+        function prevVerse() {
+            if (currentVerse > 1) {
+                currentVerse--;
+            } else if (currentChapter > 1) {
+                currentChapter--;
+                const lastVerse = Object.keys(verses[currentChapter] || {}).length;
+                currentVerse = lastVerse || 1;
+            }
+            displayVerse();
+        }
+
+        function nextVerse() {
+            const maxVerse = Object.keys(verses[currentChapter] || {}).length;
+            if (currentVerse < maxVerse) {
+                currentVerse++;
+            } else if (verses[currentChapter + 1]) {
+                currentChapter++;
+                currentVerse = 1;
+            }
+            displayVerse();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-tabs button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (mode === 'input') {
+                document.getElementById('inputMode').style.display = 'block';
+                document.getElementById('puzzleMode').style.display = 'none';
+            } else {
+                document.getElementById('inputMode').style.display = 'none';
+                document.getElementById('puzzleMode').style.display = 'block';
+                initPuzzle();
+            }
+        }
+
+        function checkInput() {
+            const verse = verses[currentChapter][currentVerse];
+            const userInput = document.getElementById('userInput').value.trim();
+            const result = document.getElementById('inputResult');
+            
+            if (userInput === verse) {
+                result.className = 'result correct';
+                result.textContent = '✓ 정답입니다!';
+            } else {
+                result.className = 'result incorrect';
+                result.textContent = '✗ 틀렸습니다. 다시 시도해보세요.';
+            }
+        }
+
+        function initPuzzle() {
+            const verse = verses[currentChapter][currentVerse];
+            if (!verse) return;
+            
+            const words = verse.split(' ');
+            shuffledWords = words.map((word, idx) => ({ word, originalIdx: idx }))
+                .sort(() => Math.random() - 0.5);
+            selectedWordIndices = [];
+            
+            renderPuzzle();
+        }
+
+        function renderPuzzle() {
+            const selectedDiv = document.getElementById('selectedWords');
+            const buttonsDiv = document.getElementById('wordButtons');
+            
+            if (selectedWordIndices.length === 0) {
+                selectedDiv.innerHTML = '<div style="color: #999;">단어를 클릭하여 순서대로 배열하세요</div>';
+                selectedDiv.classList.add('empty');
+            } else {
+                selectedDiv.classList.remove('empty');
+                selectedDiv.innerHTML = selectedWordIndices.map((idx, pos) => 
+                    `<button class="word-btn selected" onclick="unselectWord(${pos})">${shuffledWords[idx].word}</button>`
+                ).join('');
+            }
+            
+            buttonsDiv.innerHTML = shuffledWords.map((item, idx) => 
+                selectedWordIndices.includes(idx) ? '' : 
+                `<button class="word-btn" onclick="selectWord(${idx})">${item.word}</button>`
+            ).join('');
+        }
+
+        function selectWord(idx) {
+            selectedWordIndices.push(idx);
+            renderPuzzle();
+            document.getElementById('puzzleResult').innerHTML = '';
+        }
+
+        function unselectWord(pos) {
+            selectedWordIndices.splice(pos, 1);
+            renderPuzzle();
+            document.getElementById('puzzleResult').innerHTML = '';
+        }
+
+        function checkPuzzle() {
+            const verse = verses[currentChapter][currentVerse];
+            const userAnswer = selectedWordIndices.map(idx => shuffledWords[idx].word).join(' ');
+            const result = document.getElementById('puzzleResult');
+            
+            if (userAnswer === verse) {
+                result.className = 'result correct';
+                result.textContent = '✓ 정답입니다!';
+            } else {
+                result.className = 'result incorrect';
+                result.textContent = '✗ 틀렸습니다. 다시 시도해보세요.';
+            }
+        }
+
+        function resetPuzzle() {
+            initPuzzle();
+            document.getElementById('puzzleResult').innerHTML = '';
+        }
+
+        init();
+    </script>
+</body>
+</html>
